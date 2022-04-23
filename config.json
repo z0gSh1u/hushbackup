@@ -1,0 +1,17 @@
+{
+  "remoteAuth": {
+    "username": "",
+    "method": "publickey/password",
+    "password": ""
+  },
+  "sourceMachine": {
+    "tarballFolder": "",
+    "tempFolder": "",
+    "tarName": "",
+    "gzip": false
+  },
+  "targetMachine": {
+    "saveFolder": "",
+    "removeOld": false
+  }
+}
