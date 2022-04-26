@@ -30,43 +30,67 @@ func loadConfig(path string) (map[string]string, error) {
 	cfg["target.method"] = json.Get("target.method").String()
 	cfg["target.password"] = json.Get("target.password").String()
 	cfg["target.saveFolder"] = json.Get("target.saveFolder").String()
+	cfg["notification.smtp"] = json.Get("notification.smtp").String()
+	cfg["notification.port"] = json.Get("notification.port").String()
+	cfg["notification.from"] = json.Get("notification.from").String()
+	cfg["notification.to"] = json.Get("notification.to").String()
+	cfg["notification.username"] = json.Get("notification.username").String()
+	cfg["notification.password"] = json.Get("notification.password").String()
 
 	return cfg, nil
 }
 
 func main() {
+	fmt.Println("[hushbackup] Start running.")
+
+	if len(os.Args) != 2 {
+		fmt.Fprintln(os.Stderr, "No valid configuration file provided!")
+		os.Exit(1)
+	}
+
 	// Load config.
 	cfgPath := string(os.Args[1])
 	cfg, err := loadConfig(cfgPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config file! Got err: %v\n", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	// Tarball local folder.
 	tarFullpath, err := TarFolder(cfg["source.tarballFolder"], cfg["source.tempFolder"])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to tarball the folder! The err is: %v\n", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	// Connect to target.
-	port, err := strconv.Atoi(cfg["target.port"])
+	port, _ := strconv.Atoi(cfg["target.port"])
 	// sc means SFTP Connection
-	sc, err := ConnectSFTPServer(cfg["target.host"], cfg["target.username"], cfg["target.password"], port)
+	sftpc, sshc, err := ConnectSFTPServer(cfg["target.host"], cfg["target.username"], cfg["target.password"], port)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to connect to host! Got err: %v\n", err)
-		os.Exit(1)
+		panic(err)
 	}
-	defer sc.Close()
+	defer sshc.Close()
+	defer sftpc.Close()
 
 	// Upload file to remote.
-	err = UploadFile(sc, tarFullpath, filepath.Join(cfg["target.saveFolder"], filepath.Base(tarFullpath)))
+	tarRemotePath := filepath.Join(cfg["target.saveFolder"], filepath.Base(tarFullpath))
+	err = UploadFile(sftpc, tarFullpath, tarRemotePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to upload to host! Got err: %v\n", err)
-		os.Exit(1)
+		panic(err)
 	}
 
-	// TODO
+	if len(cfg["notification.to"]) > 0 {
+		port, _ = strconv.Atoi(cfg["notification.port"])
+		err = SendEMailNotification(cfg["notification.from"], cfg["notification.to"], tarRemotePath, cfg["notification.smtp"], port, cfg["notification.username"], cfg["notification.password"])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to send notification email! Got err: %v\n", err)
+			// but we dont panic
+		}
+		fmt.Println("Notification email sent.")
+	}
 
+	fmt.Println("Run all done successfully~")
 }

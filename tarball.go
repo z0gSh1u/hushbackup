@@ -19,5 +19,6 @@ func TarFolder(path string, temp string) (fullpath string, err error) {
 	if err != nil {
 		return "", err
 	}
+
 	return tarFullpath, nil
 }

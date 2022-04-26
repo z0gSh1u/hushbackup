@@ -1,39 +1,31 @@
+//
+// Notification email sender.
+//
+// by z0gSh1u @ github.com/z0gSh1u/hushbackup
+//
 package main
 
 import (
 	"crypto/tls"
-	"fmt"
+	"time"
 
 	gomail "gopkg.in/gomail.v2"
 )
 
-func SendEMail() {
+func SendEMailNotification(from string, to string, filepath string, smtp string, port int, username string, password string) error {
 	m := gomail.NewMessage()
+	m.SetHeader("From", from)
+	m.SetHeader("To", to)
+	timeNow := time.Now().Format("20060102150405") // stupid design
+	m.SetHeader("Subject", "[hushbackup] Notification for backup @ "+timeNow)
+	m.SetBody("text/html", "The backup is done successfully with tarball saved at <i>"+filepath+"</i><br><br>https://github.com/z0gSh1u/hushbackup")
 
-	// Set E-Mail sender
-	m.SetHeader("From", "from@gmail.com")
+	d := gomail.NewDialer(smtp, port, username, password)
+	d.TLSConfig = &tls.Config{ServerName: smtp, InsecureSkipVerify: false}
 
-	// Set E-Mail receivers
-	m.SetHeader("To", "to@example.com")
-
-	// Set E-Mail subject
-	m.SetHeader("Subject", "Gomail test subject")
-
-	// Set E-Mail body. You can set plain text or html with text/html
-	m.SetBody("text/plain", "This is Gomail test body")
-
-	// Settings for SMTP server
-	d := gomail.NewDialer("smtp.gmail.com", 587, "from@gmail.com", "<email_password>")
-
-	// This is only needed when SSL/TLS certificate is not valid on server.
-	// In production this should be set to false.
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-	// Now send E-Mail
 	if err := d.DialAndSend(m); err != nil {
-		fmt.Println(err)
-		panic(err)
+		return err
 	}
 
-	return
+	return nil
 }

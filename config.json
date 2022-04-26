@@ -7,14 +7,15 @@
     "host": "",
     "port": "22",
     "username": "",
-    "method": "publickey/password",
     "password": "",
     "saveFolder": ""
   },
-  "email": {
-    "sender": "",
-    "receiver": "",
+  "notification": {
     "smtp": "",
-    "authCode": ""
+    "port": "25",
+    "from": "",
+    "to": "",
+    "username": "",
+    "password": ""
   }
 }
