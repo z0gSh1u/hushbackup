@@ -12,60 +12,33 @@ import (
 	"github.com/pkg/sftp"
 )
 
-func HushbackupMain() {
-	// var p fastjson.Parser
-
-	// Get SFTP To Go URL from environment
-	rawurl := ""
-
-	// Get user name and pass
-	user := ""
-	pass := ""
-
-	// Parse Host and Port
-	host := rawurl
-	// Default SFTP port
-	port := 22
-
+func ConnectSFTPServer(host string, user string, password string, port int) (*sftp.Client, error) {
 	fmt.Fprintf(os.Stdout, "Connecting to %s ...\n", host)
 
-	var auths []ssh.AuthMethod
+	auths := []ssh.AuthMethod{ssh.Password(password)}
 
-	// Use password authentication if provided
-	if pass != "" {
-		auths = append(auths, ssh.Password(pass))
-	}
-
-	// Initialize client configuration
 	config := ssh.ClientConfig{
-		User: user,
-		Auth: auths,
-		// Uncomment to ignore host key check
+		User:            user,
+		Auth:            auths,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		// HostKeyCallback: ssh.FixedHostKey(hostKey),
 	}
-
 	addr := fmt.Sprintf("%s:%d", host, port)
 
-	// Connect to server
 	conn, err := ssh.Dial("tcp", addr, &config)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to connecto to [%s]: %v\n", addr, err)
-		os.Exit(1)
+		return nil, err
 	}
-
 	defer conn.Close()
 
-	// Create new SFTP client
 	sc, err := sftp.NewClient(conn)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to start SFTP subsystem: %v\n", err)
-		os.Exit(1)
+		return nil, err
 	}
 
-	fmt.Printf("Good! Connection form!")
-
 	defer sc.Close()
+	return sc, nil
 }
 
 func UploadFile(sc *sftp.Client, localFile, remoteFile string) (err error) {
@@ -78,7 +51,6 @@ func UploadFile(sc *sftp.Client, localFile, remoteFile string) (err error) {
 	}
 	defer srcFile.Close()
 
-	// Make remote directories recursion
 	parent := filepath.Dir(remoteFile)
 	path := string(filepath.Separator)
 	dirs := strings.Split(parent, path)

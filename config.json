@@ -1,17 +1,20 @@
 {
-  "remoteAuth": {
+  "source": {
+    "tarballFolder": "",
+    "tempFolder": ""
+  },
+  "target": {
+    "host": "",
+    "port": "22",
     "username": "",
     "method": "publickey/password",
-    "password": ""
+    "password": "",
+    "saveFolder": ""
   },
-  "sourceMachine": {
-    "tarballFolder": "",
-    "tempFolder": "",
-    "tarName": "",
-    "gzip": false
-  },
-  "targetMachine": {
-    "saveFolder": "",
-    "removeOld": false
+  "email": {
+    "sender": "",
+    "receiver": "",
+    "smtp": "",
+    "authCode": ""
   }
 }
