@@ -18,9 +18,9 @@ Execute
 hushbackup-1.0-linux-amd64 config.json
 ```
 
-Here is the guide for configuration file.
+Here is the guide for [configuration file](./config.json).
 
-```json
+```
 {
   "source": {
     "tarballFolder": "/home/me/important_code", // the folder you want to backup
